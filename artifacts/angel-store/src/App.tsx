@@ -1,7 +1,6 @@
 import { useState } from "react";
 import logoUrl from "/angel-logo.png";
 import angelNetworkIcon from "/angel-network-icon.png";
-import angelNetworkDetail from "/angel-network-detail.png";
 
 const ANGEL_NETWORK_URL = "https://angelnetwork.app";
 
@@ -89,24 +88,6 @@ function BottomNav({
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Real glass back button (top-left, fixed)
-// ─────────────────────────────────────────────────────────────────────
-function BackButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label="Retour aux apps"
-      className="fixed top-5 left-5 flex items-center gap-1.5 pl-3 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-gold/40 text-gold text-sm font-medium hover:bg-gold/15 hover:border-gold/80 transition-colors shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
-      style={{ zIndex: 90 }}
-      data-testid="button-back"
-    >
-      <span className="text-base leading-none">‹</span>
-      Apps
-    </button>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────
 // Store page
 // ─────────────────────────────────────────────────────────────────────
 function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
@@ -168,60 +149,223 @@ function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Angel Network detail page
-// Image is cropped to hide the iPhone status bar (top 8% of original).
-// All hitbox % values are relative to the cropped container.
+// Angel Network detail page — fully coded, no background image
 // ─────────────────────────────────────────────────────────────────────
-function AngelNetworkDetailPage() {
-  // Image dims: 853 × 1844. We crop top 8% (~147px) to remove status bar + notch.
-  // Cropped container aspect ratio = 853 / (1844 * 0.92) ≈ 853 / 1696
+function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
   const openAngelNetwork = () =>
     window.open(ANGEL_NETWORK_URL, "_blank", "noopener,noreferrer");
 
   return (
-    <div className="min-h-screen w-full bg-black flex items-start justify-center pb-32">
-      <div
-        className="relative w-full max-w-[480px] overflow-hidden"
-        style={{ aspectRatio: "853 / 1696" }}
-      >
-        <img
-          src={angelNetworkDetail}
-          alt="Angel Network — fiche produit"
-          className="w-full h-full select-none"
-          style={{ objectFit: "cover", objectPosition: "bottom" }}
-          draggable={false}
-        />
+    <div className="min-h-screen w-full bg-black text-amber-50 pb-32">
+      {/* Top header bar */}
+      <header className="sticky top-0 z-40 bg-black/85 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-3">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-sky-400 hover:text-sky-300 transition-colors"
+            data-testid="button-back-header"
+          >
+            <span className="text-xl leading-none">‹</span>
+            <span className="text-base font-medium">Apps</span>
+          </button>
+          <button
+            onClick={openAngelNetwork}
+            aria-label="Partager Angel Network"
+            className="text-sky-400 hover:text-sky-300 transition-colors p-2 -mr-2"
+            data-testid="button-share"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+              <path
+                d="M12 3v12M12 3l-4 4M12 3l4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
 
-        {/* Invisible OBTENIR hitbox — over blue pill button */}
-        <button
-          onClick={openAngelNetwork}
-          aria-label="Obtenir Angel Network"
-          className="absolute cursor-pointer"
-          style={{
-            left: "30%",
-            top: "20.5%",
-            width: "27%",
-            height: "5.6%",
-            borderRadius: "9999px",
-          }}
-          data-testid="button-obtain-overlay"
-        />
+      <main className="max-w-2xl mx-auto px-5">
+        {/* Title section */}
+        <section className="flex items-start gap-4 pt-6 pb-5">
+          <div className="w-[112px] h-[112px] rounded-[26px] overflow-hidden shrink-0 border border-white/10 bg-black shadow-[0_6px_24px_rgba(0,0,0,0.5)]">
+            <img
+              src={angelNetworkIcon}
+              alt="Angel Network"
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-1">
+            <div>
+              <h1 className="text-[22px] leading-tight font-semibold text-white tracking-tight">
+                Angel Network
+              </h1>
+              <p className="text-sm text-amber-50/55 mt-0.5">Angel</p>
+            </div>
+            <div className="flex items-center gap-3 mt-3">
+              <button
+                onClick={openAngelNetwork}
+                className="px-7 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 active:bg-sky-600 transition-colors text-white text-sm font-bold tracking-wide"
+                data-testid="button-obtain"
+              >
+                OBTENIR
+              </button>
+              <span className="text-[11px] text-amber-50/45 leading-tight">
+                Achats
+                <br />
+                intégrés
+              </span>
+            </div>
+          </div>
+        </section>
 
-        {/* Invisible Share hitbox — over share icon (top right of OBTENIR row) */}
-        <button
-          onClick={openAngelNetwork}
-          aria-label="Partager Angel Network"
-          className="absolute cursor-pointer"
-          style={{
-            left: "85%",
-            top: "20.5%",
-            width: "10%",
-            height: "5.6%",
-            borderRadius: "8px",
-          }}
-          data-testid="button-share-overlay"
-        />
-      </div>
+        {/* Store info — 3 columns */}
+        <section className="grid grid-cols-3 divide-x divide-white/10 border-y border-white/10 py-4 my-2">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <div className="text-xl font-semibold text-amber-50/85">
+              4,7 <span className="text-gold">★</span>
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-amber-50/40">
+              41 K notes
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <div className="text-xl font-semibold text-amber-50/85">17+</div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-amber-50/40">
+              Âge
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <div className="text-xl font-semibold text-amber-50/85">#1</div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-amber-50/40">
+              Réseaux
+            </div>
+          </div>
+        </section>
+
+        {/* Screenshots — horizontal scroll */}
+        <section className="mt-6 -mx-5">
+          <div
+            className="flex gap-4 overflow-x-auto px-5 pb-4 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "none" }}
+            data-testid="screenshots-scroll"
+          >
+            {/* Card 1 — FLUX */}
+            <div
+              className="snap-start shrink-0 w-[78%] max-w-[340px] aspect-[9/16] rounded-[28px] overflow-hidden border border-white/10 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 relative shadow-[0_10px_40px_rgba(0,0,0,0.6)]"
+              data-testid="screenshot-flux"
+            >
+              <div className="absolute inset-0 p-6 flex flex-col">
+                <div className="flex items-center justify-between text-amber-50/70 text-xs">
+                  <span className="font-mono">09:41</span>
+                  <span className="font-display tracking-[0.3em] text-gold text-[10px]">
+                    FLUX
+                  </span>
+                </div>
+
+                <div className="flex-1 flex flex-col items-center justify-center text-center px-2">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gold/30 mb-5">
+                    <img
+                      src={angelNetworkIcon}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  </div>
+                  <h3 className="font-display text-2xl text-white leading-tight tracking-wide">
+                    Connecter,
+                    <br />
+                    Partager,
+                    <br />
+                    S'élever ensemble.
+                  </h3>
+                  <p className="text-[11px] text-amber-50/50 mt-4 tracking-[0.25em] uppercase">
+                    #AngelNetwork
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-around pt-3 border-t border-white/5 text-amber-50/40">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                    <path
+                      d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                    <path
+                      d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                    <path
+                      d="M12 3v12M12 3l-4 4M12 3l4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2 — MESSAGERIE */}
+            <div
+              className="snap-start shrink-0 w-[78%] max-w-[340px] aspect-[9/16] rounded-[28px] overflow-hidden border border-white/10 bg-gradient-to-br from-black via-zinc-950 to-zinc-900 relative shadow-[0_10px_40px_rgba(0,0,0,0.6)]"
+              data-testid="screenshot-messagerie"
+            >
+              <div className="absolute inset-0 p-6 flex flex-col">
+                <div className="flex items-center justify-between text-amber-50/70 text-xs">
+                  <span className="font-mono">09:41</span>
+                  <span className="font-display tracking-[0.3em] text-gold text-[10px]">
+                    MESSAGERIE
+                  </span>
+                </div>
+
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <img
+                    src={logoUrl}
+                    alt="Angel"
+                    className="w-32 h-auto opacity-90 mb-6"
+                    draggable={false}
+                  />
+                  <h3 className="font-display text-xl text-white tracking-[0.2em]">
+                    MESSAGERIE
+                  </h3>
+                  <p className="text-xs text-amber-50/50 mt-3 text-center px-4">
+                    Conversations protégées,
+                    <br />
+                    présence céleste.
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-3 border-t border-white/5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-gold/20 border border-gold/40 shrink-0" />
+                    <div className="flex-1 h-2 rounded bg-white/10" />
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-amber-50/10 border border-white/10 shrink-0" />
+                    <div className="flex-1 h-2 rounded bg-white/5" />
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-amber-50/10 border border-white/10 shrink-0" />
+                    <div className="flex-1 h-2 rounded bg-white/5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
@@ -250,10 +394,7 @@ export default function App() {
           onOpenAngelNetwork={() => setCurrentPage("angel_network_detail")}
         />
       ) : (
-        <>
-          <BackButton onClick={() => setCurrentPage("store")} />
-          <AngelNetworkDetailPage />
-        </>
+        <AngelNetworkDetailPage onBack={() => setCurrentPage("store")} />
       )}
 
       <BottomNav active={navTab} onChange={handleNavChange} />
