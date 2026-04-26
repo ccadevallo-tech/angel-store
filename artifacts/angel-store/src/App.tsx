@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import logoUrl from "/angel-logo.png";
 import angelNetworkIcon from "/angel-network-icon.png";
 import angelNetworkDetail from "/angel-network-detail.png";
@@ -10,7 +9,7 @@ type Page = "store" | "angel_network_detail";
 type NavTab = "today" | "apps" | "search";
 
 // ─────────────────────────────────────────────────────────────────────
-// Persistent bottom navigation
+// Persistent bottom navigation (real component, not an image)
 // ─────────────────────────────────────────────────────────────────────
 function BottomNav({
   active,
@@ -25,27 +24,9 @@ function BottomNav({
       label: "Aujourd'hui",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-          <rect
-            x="3"
-            y="4"
-            width="18"
-            height="17"
-            rx="3"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <path
-            d="M3 9h18"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-          <path
-            d="M8 3v3M16 3v3"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
+          <rect x="3" y="4" width="18" height="17" rx="3" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M3 9h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M8 3v3M16 3v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
       ),
     },
@@ -54,42 +35,10 @@ function BottomNav({
       label: "Apps",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-          <rect
-            x="3"
-            y="3"
-            width="7"
-            height="7"
-            rx="1.6"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <rect
-            x="14"
-            y="3"
-            width="7"
-            height="7"
-            rx="1.6"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <rect
-            x="3"
-            y="14"
-            width="7"
-            height="7"
-            rx="1.6"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <rect
-            x="14"
-            y="14"
-            width="7"
-            height="7"
-            rx="1.6"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
+          <rect x="3" y="3" width="7" height="7" rx="1.6" stroke="currentColor" strokeWidth="1.6" />
+          <rect x="14" y="3" width="7" height="7" rx="1.6" stroke="currentColor" strokeWidth="1.6" />
+          <rect x="3" y="14" width="7" height="7" rx="1.6" stroke="currentColor" strokeWidth="1.6" />
+          <rect x="14" y="14" width="7" height="7" rx="1.6" stroke="currentColor" strokeWidth="1.6" />
         </svg>
       ),
     },
@@ -98,19 +47,8 @@ function BottomNav({
       label: "Recherche",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-          <circle
-            cx="11"
-            cy="11"
-            r="7"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <path
-            d="m20 20-3.5-3.5"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
+          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
+          <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
       ),
     },
@@ -118,7 +56,7 @@ function BottomNav({
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 border-t border-gold/20 bg-black/80 backdrop-blur-xl"
+      className="fixed bottom-0 left-0 right-0 border-t border-gold/20 bg-black/85 backdrop-blur-xl"
       style={{ zIndex: 100 }}
       data-testid="bottom-nav"
     >
@@ -147,6 +85,24 @@ function BottomNav({
         })}
       </div>
     </nav>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Real glass back button (top-left, fixed)
+// ─────────────────────────────────────────────────────────────────────
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Retour aux apps"
+      className="fixed top-5 left-5 flex items-center gap-1.5 pl-3 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-gold/40 text-gold text-sm font-medium hover:bg-gold/15 hover:border-gold/80 transition-colors shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+      style={{ zIndex: 90 }}
+      data-testid="button-back"
+    >
+      <span className="text-base leading-none">‹</span>
+      Apps
+    </button>
   );
 }
 
@@ -212,48 +168,58 @@ function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Angel Network detail page (image with click overlays)
+// Angel Network detail page
+// Image is cropped to hide the iPhone status bar (top 8% of original).
+// All hitbox % values are relative to the cropped container.
 // ─────────────────────────────────────────────────────────────────────
-function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
+function AngelNetworkDetailPage() {
+  // Image dims: 853 × 1844. We crop top 8% (~147px) to remove status bar + notch.
+  // Cropped container aspect ratio = 853 / (1844 * 0.92) ≈ 853 / 1696
+  const openAngelNetwork = () =>
+    window.open(ANGEL_NETWORK_URL, "_blank", "noopener,noreferrer");
+
   return (
-    <div className="relative min-h-screen w-full bg-black flex items-start justify-center pb-32">
-      <div className="relative w-full max-w-[480px]">
+    <div className="min-h-screen w-full bg-black flex items-start justify-center pb-32">
+      <div
+        className="relative w-full max-w-[480px] overflow-hidden"
+        style={{ aspectRatio: "853 / 1696" }}
+      >
         <img
           src={angelNetworkDetail}
           alt="Angel Network — fiche produit"
-          className="w-full h-auto block select-none"
+          className="w-full h-full select-none"
+          style={{ objectFit: "cover", objectPosition: "bottom" }}
           draggable={false}
         />
 
-        {/* Invisible "‹ Apps" back button overlay (top-left of screenshot) */}
+        {/* Invisible OBTENIR hitbox — over blue pill button */}
         <button
-          onClick={onBack}
-          aria-label="Retour aux apps"
-          className="absolute cursor-pointer"
-          style={{
-            left: "2%",
-            top: "6.5%",
-            width: "22%",
-            height: "3.5%",
-          }}
-          data-testid="button-back-overlay"
-        />
-
-        {/* Invisible "OBTENIR" overlay (blue pill in screenshot) */}
-        <button
-          onClick={() =>
-            window.open(ANGEL_NETWORK_URL, "_blank", "noopener,noreferrer")
-          }
+          onClick={openAngelNetwork}
           aria-label="Obtenir Angel Network"
           className="absolute cursor-pointer"
           style={{
-            left: "30.5%",
-            top: "26.5%",
-            width: "26%",
-            height: "5.2%",
+            left: "30%",
+            top: "20.5%",
+            width: "27%",
+            height: "5.6%",
             borderRadius: "9999px",
           }}
           data-testid="button-obtain-overlay"
+        />
+
+        {/* Invisible Share hitbox — over share icon (top right of OBTENIR row) */}
+        <button
+          onClick={openAngelNetwork}
+          aria-label="Partager Angel Network"
+          className="absolute cursor-pointer"
+          style={{
+            left: "85%",
+            top: "20.5%",
+            width: "10%",
+            height: "5.6%",
+            borderRadius: "8px",
+          }}
+          data-testid="button-share-overlay"
         />
       </div>
     </div>
@@ -279,31 +245,16 @@ export default function App() {
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500&display=swap"
       />
 
-      <AnimatePresence mode="wait">
-        {currentPage === "store" ? (
-          <motion.div
-            key="store"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <StorePage
-              onOpenAngelNetwork={() => setCurrentPage("angel_network_detail")}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="detail"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <AngelNetworkDetailPage onBack={() => setCurrentPage("store")} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {currentPage === "store" ? (
+        <StorePage
+          onOpenAngelNetwork={() => setCurrentPage("angel_network_detail")}
+        />
+      ) : (
+        <>
+          <BackButton onClick={() => setCurrentPage("store")} />
+          <AngelNetworkDetailPage />
+        </>
+      )}
 
       <BottomNav active={navTab} onChange={handleNavChange} />
     </>
