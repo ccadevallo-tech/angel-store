@@ -1,11 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import logoUrl from "/angel-logo.png";
 import angelNetworkIcon from "/angel-network-icon.png";
 
 const ANGEL_NETWORK_URL = "https://angelnetwork.app";
+const REVIEWS_STORAGE_KEY = "angel_network_reviews_v1";
 
 type Page = "store" | "angel_network_detail";
 type NavTab = "today" | "apps" | "search";
+
+type Review = {
+  id: string;
+  stars: number;
+  author: string;
+  text: string;
+  date: string;
+};
+
+function loadReviews(): Review[] {
+  try {
+    const raw = localStorage.getItem(REVIEWS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveReviews(reviews: Review[]) {
+  try {
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
+  } catch {
+    /* ignore */
+  }
+}
+
+function formatAverage(avg: number): string {
+  if (!avg) return "—";
+  return avg.toFixed(1).replace(".", ",");
+}
 
 // ─────────────────────────────────────────────────────────────────────
 // Persistent bottom navigation (real component, not an image)
@@ -151,7 +184,267 @@ function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
 // ─────────────────────────────────────────────────────────────────────
 // Angel Network detail page — fully coded, no background image
 // ─────────────────────────────────────────────────────────────────────
+function StarRow({
+  value,
+  size = 14,
+  className = "",
+}: {
+  value: number;
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <div className={`inline-flex items-center gap-0.5 ${className}`}>
+      {[1, 2, 3, 4, 5].map((i) => {
+        const filled = value >= i;
+        const half = !filled && value >= i - 0.5;
+        return (
+          <svg
+            key={i}
+            viewBox="0 0 24 24"
+            width={size}
+            height={size}
+            className={filled || half ? "text-gold" : "text-amber-50/15"}
+          >
+            <defs>
+              <linearGradient id={`half-${i}`}>
+                <stop offset="50%" stopColor="currentColor" />
+                <stop offset="50%" stopColor="rgba(245,231,196,0.15)" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.7 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9L12 2.5z"
+              fill={half ? `url(#half-${i})` : "currentColor"}
+            />
+          </svg>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReviewsSection() {
+  const [reviews, setReviews] = useState<Review[]>(() => loadReviews());
+  const [open, setOpen] = useState(false);
+  const [stars, setStars] = useState(0);
+  const [author, setAuthor] = useState("");
+  const [text, setText] = useState("");
+  const [hover, setHover] = useState(0);
+
+  useEffect(() => {
+    saveReviews(reviews);
+  }, [reviews]);
+
+  const total = reviews.length;
+  const average = total
+    ? reviews.reduce((s, r) => s + r.stars, 0) / total
+    : 0;
+
+  const breakdown = [5, 4, 3, 2, 1].map((star) => {
+    const count = reviews.filter((r) => r.stars === star).length;
+    const pct = total ? (count / total) * 100 : 0;
+    return { star, count, pct };
+  });
+
+  const submit = () => {
+    if (!stars) return;
+    const review: Review = {
+      id: crypto.randomUUID(),
+      stars,
+      author: author.trim() || "Anonyme",
+      text: text.trim(),
+      date: new Date().toISOString(),
+    };
+    setReviews([review, ...reviews]);
+    setStars(0);
+    setHover(0);
+    setAuthor("");
+    setText("");
+    setOpen(false);
+  };
+
+  return (
+    <section className="mt-8 border-t border-white/10 pt-6">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-base font-semibold text-white tracking-tight">
+          Notes et avis
+        </h2>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="text-sky-400 hover:text-sky-300 text-sm font-medium"
+          data-testid="button-toggle-review-form"
+        >
+          {open ? "Annuler" : "Donner un avis"}
+        </button>
+      </div>
+
+      {/* Summary */}
+      <div className="flex items-stretch gap-5 mb-6">
+        <div className="flex flex-col items-center justify-center min-w-[90px]">
+          <div className="text-5xl font-bold text-white leading-none">
+            {formatAverage(average)}
+          </div>
+          <div className="text-[10px] text-amber-50/45 uppercase tracking-[0.2em] mt-2">
+            sur 5
+          </div>
+          <StarRow value={average} size={11} className="mt-2" />
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center gap-1">
+          {breakdown.map(({ star, pct }) => (
+            <div key={star} className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5 w-[58px] justify-end text-amber-50/40">
+                {Array.from({ length: star }).map((_, i) => (
+                  <svg
+                    key={i}
+                    viewBox="0 0 24 24"
+                    width={9}
+                    height={9}
+                    fill="currentColor"
+                  >
+                    <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.7 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9L12 2.5z" />
+                  </svg>
+                ))}
+              </div>
+              <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full bg-gold/80 rounded-full transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <div className="w-10 text-right text-[10px] text-amber-50/45 tabular-nums">
+                {pct.toFixed(0)}%
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-[11px] text-amber-50/45 mb-6">
+        {total === 0
+          ? "Aucun avis pour le moment · Soyez le premier"
+          : `${total.toLocaleString("fr-FR")} ${total > 1 ? "avis" : "avis"}`}
+      </div>
+
+      {/* Form */}
+      {open && (
+        <div className="mb-6 p-4 rounded-2xl bg-white/[0.04] border border-white/10">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-amber-50/45 mb-2">
+            Votre note
+          </div>
+          <div
+            className="flex items-center gap-1 mb-4"
+            onMouseLeave={() => setHover(0)}
+          >
+            {[1, 2, 3, 4, 5].map((n) => {
+              const active = (hover || stars) >= n;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  onMouseEnter={() => setHover(n)}
+                  onClick={() => setStars(n)}
+                  className={`p-1 transition-colors ${
+                    active ? "text-gold" : "text-amber-50/20 hover:text-amber-50/40"
+                  }`}
+                  aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+                  data-testid={`star-${n}`}
+                >
+                  <svg viewBox="0 0 24 24" width={26} height={26} fill="currentColor">
+                    <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.7 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9L12 2.5z" />
+                  </svg>
+                </button>
+              );
+            })}
+          </div>
+
+          <input
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="Votre nom (optionnel)"
+            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-amber-50 placeholder:text-amber-50/30 mb-3 focus:border-gold/50 outline-none"
+            data-testid="input-author"
+          />
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Partagez votre expérience…"
+            rows={3}
+            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-amber-50 placeholder:text-amber-50/30 resize-none focus:border-gold/50 outline-none"
+            data-testid="input-text"
+          />
+
+          <button
+            onClick={submit}
+            disabled={!stars}
+            className="mt-3 w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 disabled:bg-white/10 disabled:text-amber-50/30 text-white text-sm font-bold tracking-wide transition-colors"
+            data-testid="button-submit-review"
+          >
+            Publier l'avis
+          </button>
+        </div>
+      )}
+
+      {/* Reviews list */}
+      {reviews.length > 0 && (
+        <div className="space-y-5">
+          {reviews.slice(0, 5).map((r) => (
+            <div
+              key={r.id}
+              className="pb-4 border-b border-white/5 last:border-0"
+              data-testid={`review-${r.id}`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="text-sm font-medium text-amber-50">
+                  {r.author}
+                </div>
+                <div className="text-[10px] text-amber-50/40 tabular-nums">
+                  {new Date(r.date).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </div>
+              </div>
+              <StarRow value={r.stars} size={11} className="mb-2" />
+              {r.text && (
+                <p className="text-sm text-amber-50/70 leading-relaxed">
+                  {r.text}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
+  const [reviewStats, setReviewStats] = useState(() => {
+    const r = loadReviews();
+    return {
+      total: r.length,
+      avg: r.length ? r.reduce((s, x) => s + x.stars, 0) / r.length : 0,
+    };
+  });
+
+  useEffect(() => {
+    const update = () => {
+      const r = loadReviews();
+      setReviewStats({
+        total: r.length,
+        avg: r.length ? r.reduce((s, x) => s + x.stars, 0) / r.length : 0,
+      });
+    };
+    window.addEventListener("storage", update);
+    const t = setInterval(update, 800);
+    return () => {
+      window.removeEventListener("storage", update);
+      clearInterval(t);
+    };
+  }, []);
+
   const openAngelNetwork = () =>
     window.open(ANGEL_NETWORK_URL, "_blank", "noopener,noreferrer");
 
@@ -226,16 +519,23 @@ function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
         <section className="grid grid-cols-3 divide-x divide-white/10 border-y border-white/10 py-4 my-2">
           <div className="flex flex-col items-center justify-center gap-1">
             <div className="text-xl font-semibold text-amber-50/85">
-              4,7 <span className="text-gold">★</span>
+              {formatAverage(reviewStats.avg)}{" "}
+              <span className="text-gold">★</span>
             </div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-amber-50/40">
-              41 K notes
+              {reviewStats.total === 0
+                ? "Aucun avis"
+                : `${reviewStats.total} ${
+                    reviewStats.total > 1 ? "avis" : "avis"
+                  }`}
             </div>
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
-            <div className="text-xl font-semibold text-amber-50/85">17+</div>
+            <div className="text-xl font-semibold text-amber-50/85">
+              Tout âge
+            </div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-amber-50/40">
-              Âge
+              Classification
             </div>
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
@@ -365,6 +665,8 @@ function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
             </div>
           </div>
         </section>
+
+        <ReviewsSection />
       </main>
     </div>
   );
