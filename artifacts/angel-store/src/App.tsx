@@ -675,6 +675,23 @@ function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
 // ─────────────────────────────────────────────────────────────────────
 // Root
 // ─────────────────────────────────────────────────────────────────────
+function ComingSoonPage({ label }: { label: string }) {
+  return (
+    <div
+      className="min-h-screen w-full bg-black text-amber-50 flex flex-col items-center justify-center px-8 pb-32"
+      data-testid={`page-${label.toLowerCase()}`}
+    >
+      <div className="font-display text-xs tracking-[0.5em] text-gold/70 mb-4">
+        {label.toUpperCase()}
+      </div>
+      <p className="text-center text-amber-50/70 text-base max-w-xs leading-relaxed">
+        Arrivée prochaine dans l'écosystème Angel
+      </p>
+      <div className="mt-6 w-12 h-px bg-gold/40" />
+    </div>
+  );
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("store");
   const [navTab, setNavTab] = useState<NavTab>("apps");
@@ -684,6 +701,19 @@ export default function App() {
     if (tab === "apps") setCurrentPage("store");
   };
 
+  const renderContent = () => {
+    if (navTab === "today") return <ComingSoonPage label="Aujourd'hui" />;
+    if (navTab === "search") return <ComingSoonPage label="Recherche" />;
+    // navTab === "apps"
+    return currentPage === "store" ? (
+      <StorePage
+        onOpenAngelNetwork={() => setCurrentPage("angel_network_detail")}
+      />
+    ) : (
+      <AngelNetworkDetailPage onBack={() => setCurrentPage("store")} />
+    );
+  };
+
   return (
     <>
       <link
@@ -691,13 +721,7 @@ export default function App() {
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500&display=swap"
       />
 
-      {currentPage === "store" ? (
-        <StorePage
-          onOpenAngelNetwork={() => setCurrentPage("angel_network_detail")}
-        />
-      ) : (
-        <AngelNetworkDetailPage onBack={() => setCurrentPage("store")} />
-      )}
+      {renderContent()}
 
       <BottomNav active={navTab} onChange={handleNavChange} />
     </>
