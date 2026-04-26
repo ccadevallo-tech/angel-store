@@ -7,11 +7,155 @@ import angelNetworkDetail from "/angel-network-detail.png";
 const ANGEL_NETWORK_URL = "https://angelnetwork.app";
 
 type Page = "store" | "angel_network_detail";
+type NavTab = "today" | "apps" | "search";
 
+// ─────────────────────────────────────────────────────────────────────
+// Persistent bottom navigation
+// ─────────────────────────────────────────────────────────────────────
+function BottomNav({
+  active,
+  onChange,
+}: {
+  active: NavTab;
+  onChange: (t: NavTab) => void;
+}) {
+  const tabs: { id: NavTab; label: string; icon: JSX.Element }[] = [
+    {
+      id: "today",
+      label: "Aujourd'hui",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+          <rect
+            x="3"
+            y="4"
+            width="18"
+            height="17"
+            rx="3"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path
+            d="M3 9h18"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+          <path
+            d="M8 3v3M16 3v3"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "apps",
+      label: "Apps",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+          <rect
+            x="3"
+            y="3"
+            width="7"
+            height="7"
+            rx="1.6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <rect
+            x="14"
+            y="3"
+            width="7"
+            height="7"
+            rx="1.6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <rect
+            x="3"
+            y="14"
+            width="7"
+            height="7"
+            rx="1.6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <rect
+            x="14"
+            y="14"
+            width="7"
+            height="7"
+            rx="1.6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "search",
+      label: "Recherche",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+          <circle
+            cx="11"
+            cy="11"
+            r="7"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path
+            d="m20 20-3.5-3.5"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 border-t border-gold/20 bg-black/80 backdrop-blur-xl"
+      style={{ zIndex: 100 }}
+      data-testid="bottom-nav"
+    >
+      <div className="max-w-2xl mx-auto flex items-center justify-around px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        {tabs.map((t) => {
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onChange(t.id)}
+              className={`flex flex-col items-center justify-center gap-1 px-6 py-2 rounded-xl transition-colors ${
+                isActive ? "text-gold" : "text-amber-50/40 hover:text-amber-50/70"
+              }`}
+              data-testid={`nav-${t.id}`}
+            >
+              {t.icon}
+              <span
+                className={`text-[10px] tracking-[0.18em] uppercase ${
+                  isActive ? "font-medium" : ""
+                }`}
+              >
+                {t.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Store page
+// ─────────────────────────────────────────────────────────────────────
 function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
   return (
-    <div className="min-h-screen w-full bg-black text-amber-50">
-      {/* Banner */}
+    <div className="min-h-screen w-full bg-black text-amber-50 pb-32">
       <header className="relative w-full flex flex-col items-center justify-center pt-16 pb-10 px-6">
         <img
           src={logoUrl}
@@ -27,8 +171,7 @@ function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
         </p>
       </header>
 
-      {/* Apps list */}
-      <main className="w-full max-w-2xl mx-auto px-6 pb-20">
+      <main className="w-full max-w-2xl mx-auto px-6">
         <div className="flex items-center justify-between mb-4 px-1">
           <h2 className="font-display text-sm tracking-[0.35em] text-gold/80">
             APPLICATIONS
@@ -59,9 +202,7 @@ function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
               Réseau Social Céleste
             </p>
           </div>
-          <span
-            className="shrink-0 px-5 py-2 rounded-full bg-gold/15 border border-gold/40 text-gold text-sm font-display tracking-[0.25em]"
-          >
+          <span className="shrink-0 px-5 py-2 rounded-full bg-gold/15 border border-gold/40 text-gold text-sm font-display tracking-[0.25em]">
             VOIR
           </span>
         </button>
@@ -70,22 +211,12 @@ function StorePage({ onOpenAngelNetwork }: { onOpenAngelNetwork: () => void }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Angel Network detail page (image with click overlays)
+// ─────────────────────────────────────────────────────────────────────
 function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
   return (
-    <div className="relative min-h-screen w-full bg-black flex items-start justify-center">
-      {/* Back button */}
-      <motion.button
-        onClick={onBack}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/70 backdrop-blur-md border border-gold/50 text-gold font-display text-sm tracking-[0.25em] hover:bg-gold/15 hover:border-gold transition-colors shadow-[0_0_20px_rgba(212,175,55,0.25)]"
-        data-testid="button-back"
-      >
-        <span className="text-base leading-none">←</span>
-        RETOUR
-      </motion.button>
-
-      {/* Detail preview image */}
+    <div className="relative min-h-screen w-full bg-black flex items-start justify-center pb-32">
       <div className="relative w-full max-w-[480px]">
         <img
           src={angelNetworkDetail}
@@ -94,15 +225,25 @@ function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
           draggable={false}
         />
 
-        {/*
-          Invisible click target placed exactly over the blue "OBTENIR" pill
-          in the screenshot. Coordinates are expressed in % of the image so
-          they scale with the responsive image.
-        */}
-        <a
-          href={ANGEL_NETWORK_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* Invisible "‹ Apps" back button overlay (top-left of screenshot) */}
+        <button
+          onClick={onBack}
+          aria-label="Retour aux apps"
+          className="absolute cursor-pointer"
+          style={{
+            left: "2%",
+            top: "6.5%",
+            width: "22%",
+            height: "3.5%",
+          }}
+          data-testid="button-back-overlay"
+        />
+
+        {/* Invisible "OBTENIR" overlay (blue pill in screenshot) */}
+        <button
+          onClick={() =>
+            window.open(ANGEL_NETWORK_URL, "_blank", "noopener,noreferrer")
+          }
           aria-label="Obtenir Angel Network"
           className="absolute cursor-pointer"
           style={{
@@ -119,8 +260,17 @@ function AngelNetworkDetailPage({ onBack }: { onBack: () => void }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Root
+// ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("store");
+  const [navTab, setNavTab] = useState<NavTab>("apps");
+
+  const handleNavChange = (tab: NavTab) => {
+    setNavTab(tab);
+    if (tab === "apps") setCurrentPage("store");
+  };
 
   return (
     <>
@@ -154,6 +304,8 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BottomNav active={navTab} onChange={handleNavChange} />
     </>
   );
 }
