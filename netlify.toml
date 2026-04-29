@@ -1,8 +1,7 @@
 [build]
-  command = "npm run build"
+  command = "pnpm -F angel-store build"
   publish = "dist"
   base = "/"
 
 [build.environment]
   CI = "false"
-  PORT = "8080"
