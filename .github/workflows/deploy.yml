@@ -14,12 +14,14 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22 # On passe à 22 pour enlever l'erreur jaune
           cache: 'pnpm'
       - run: pnpm install
       - run: npm run build
-      - uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: apps/web/dist
+          folder: dist # On cible le dossier dist à la racine
           branch: gh-pages
+
           
