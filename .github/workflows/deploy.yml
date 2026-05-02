@@ -19,13 +19,11 @@ jobs:
           
       - run: pnpm install --no-frozen-lockfile
       
-      # On force le build spécifiquement pour l'app web
-      - run: pnpm build
+      # On lance le build global
+      - run: pnpm build 
 
-      - name: Deploy
+      - name: Deploy Everything
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # On cible le dossier exact que tu as montré dans tes erreurs précédentes
-          folder: apps/web/dist 
+          folder: . # On déploie TOUT le projet pour voir ce qui s'y passe
           branch: gh-pages
-          clean: true
