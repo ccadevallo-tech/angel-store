@@ -16,16 +16,16 @@ jobs:
         with:
           node-version: 22
           cache: 'pnpm'
-      
+          
       - run: pnpm install --no-frozen-lockfile
-      
-      # On utilise la commande de build que ton projet connaît
-      - run: pnpm build 
+      - run: pnpm build
+
+      # Cette étape force le déplacement du site construit vers un dossier simple
+      - name: Prepare Content
+        run: cp -r apps/web/dist ./public_site
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # On déploie TOUT le projet. 
-          # Si l'index.html est dans un sous-dossier, on le saura tout de suite.
-          folder: . 
+          folder: public_site # On déploie le dossier qu'on vient de créer
           branch: gh-pages
