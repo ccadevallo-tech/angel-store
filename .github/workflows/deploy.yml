@@ -18,13 +18,17 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --no-frozen-lockfile
       
-      # On force la construction spécifiquement pour l'application web
-      - name: Build Web App
-        run: pnpm --filter @workspace/web build 
+      # On lance le build global
+      - run: npm run build 
+
+      # CETTE ÉTAPE VA NOUS DIRE OÙ EST LE SITE
+      - name: Check where the files are
+        run: find . -maxdepth 3 -name "index.html"
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # On cible le dossier de sortie précis de l'application web
-          folder: apps/web/dist 
+          # On essaie de cibler la racine au cas où
+          folder: . 
           branch: gh-pages
+
