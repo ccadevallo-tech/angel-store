@@ -18,12 +18,11 @@ jobs:
           cache: 'pnpm'
           
       - run: pnpm install --no-frozen-lockfile
-      
-      # On lance le build global
       - run: pnpm build 
 
-      - name: Deploy Everything
+      - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: . # On déploie TOUT le projet pour voir ce qui s'y passe
+          # On cible le dossier spécifique de l'app web
+          folder: apps/web/dist 
           branch: gh-pages
