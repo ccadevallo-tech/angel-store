@@ -14,14 +14,15 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 22 # On passe à 22 pour enlever l'erreur jaune
+          node-version: 22
           cache: 'pnpm'
-      - run: pnpm install
+      - run: pnpm install --no-frozen-lockfile
       - run: npm run build
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: dist # On cible le dossier dist à la racine
+          folder: dist
           branch: gh-pages
+
 
           
