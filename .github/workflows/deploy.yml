@@ -17,17 +17,23 @@ jobs:
           node-version: 22
           cache: 'pnpm'
           
-      # 1. On installe tout proprement
       - run: pnpm install --no-frozen-lockfile
       
-      # 2. On lance la construction
-      - run: pnpm build 
+      # On lance ta construction (ça, on sait que ça marche !)
+      - run: npm run build 
 
-      # 3. ON DÉPLOIE LE BON DOSSIER
+      # LE SCRIPT MAGIQUE : Il cherche ton index.html, le prend, et prépare le bon dossier
+      - name: Auto-Find and Prepare
+        run: |
+          SITE_DIR=$(find . -name "index.html" -not -path "*/node_modules/*" -exec dirname {} \; | head -n 1)
+          if [ -z "$SITE_DIR" ]; then SITE_DIR="."; fi
+          echo "Le site a été trouvé ici : $SITE_DIR"
+          mkdir -p ROOT_SITE
+          cp -a $SITE_DIR/. ROOT_SITE/
+          
+      # On déploie le dossier ROOT_SITE qui vient d'être créé à coup sûr
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: apps/web/dist # C'est ici que se cache ton index.html !
+          folder: ROOT_SITE
           branch: gh-pages
-
-
