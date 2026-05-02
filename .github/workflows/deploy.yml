@@ -17,12 +17,14 @@ jobs:
           node-version: 22
           cache: 'pnpm'
       - run: pnpm install --no-frozen-lockfile
-      - run: npm run build
+      
+      # On force la construction spécifiquement pour l'application web
+      - name: Build Web App
+        run: pnpm --filter @workspace/web build 
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: dist
+          # On cible le dossier de sortie précis de l'application web
+          folder: apps/web/dist 
           branch: gh-pages
-
-
-          
