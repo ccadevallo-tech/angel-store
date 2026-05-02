@@ -18,19 +18,14 @@ jobs:
           cache: 'pnpm'
           
       - run: pnpm install --no-frozen-lockfile
+      
+      # On force le build spécifiquement pour l'app web
       - run: pnpm build
-
-      # Ce bloc cherche ton site et le prépare proprement
-      - name: Locate and Prepare
-        run: |
-          # Trouve le dossier qui contient l'index.html construit (exclut node_modules)
-          SITE_PATH=$(find . -name "index.html" -not -path "*/node_modules/*" -exec dirname {} \; | head -n 1)
-          echo "Site trouvé dans : $SITE_PATH"
-          mkdir -p final_deploy
-          cp -r $SITE_PATH/. ./final_deploy/
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: final_deploy
+          # On cible le dossier exact que tu as montré dans tes erreurs précédentes
+          folder: apps/web/dist 
           branch: gh-pages
+          clean: true
