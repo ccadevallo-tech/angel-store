@@ -16,19 +16,18 @@ jobs:
         with:
           node-version: 22
           cache: 'pnpm'
+          
+      # 1. On installe tout proprement
       - run: pnpm install --no-frozen-lockfile
       
-      # On lance le build global
-      - run: npm run build 
+      # 2. On lance la construction
+      - run: pnpm build 
 
-      # CETTE ÉTAPE VA NOUS DIRE OÙ EST LE SITE
-      - name: Check where the files are
-        run: find . -maxdepth 3 -name "index.html"
-
+      # 3. ON DÉPLOIE LE BON DOSSIER
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # On essaie de cibler la racine au cas où
-          folder: . 
+          folder: apps/web/dist # C'est ici que se cache ton index.html !
           branch: gh-pages
+
 
